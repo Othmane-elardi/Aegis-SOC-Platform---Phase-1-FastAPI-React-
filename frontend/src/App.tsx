@@ -5,6 +5,11 @@ import Login from "./pages/Login";
 import Overview from "./pages/Overview";
 import Executive from "./pages/Executive";
 import Incidents from "./pages/Incidents";
+import ThreatIntel from "./pages/ThreatIntel";
+import Mitre from "./pages/Mitre";
+import Assets from "./pages/Assets";
+import Vulnerabilities from "./pages/Vulnerabilities";
+import Compliance from "./pages/Compliance";
 import ModulePlaceholder from "./pages/ModulePlaceholder";
 import { MODULES } from "./modules";
 
@@ -29,6 +34,11 @@ export default function App() {
         <Route path="/" element={<Overview />} />
         <Route path="/executive" element={<Executive />} />
         <Route path="/incidents" element={<Incidents />} />
+        <Route path="/threat-intel" element={<ThreatIntel />} />
+        <Route path="/mitre" element={<Mitre />} />
+        <Route path="/assets" element={<Assets />} />
+        <Route path="/vulns" element={<Vulnerabilities />} />
+        <Route path="/compliance" element={<Compliance />} />
         {/* Modules de la roadmap : squelettes honnêtes (badge « Roadmap ») pour
             montrer l'étendue de la plateforme sans simuler une profondeur absente. */}
         {MODULES.filter((m) => m.roadmap).map((m) => (

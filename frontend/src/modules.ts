@@ -22,14 +22,14 @@ export const MODULES: ModuleDef[] = [
   { path: "/hunting", label: "Threat Hunting", group: "Detection & Response", icon: "🎯", roadmap: true },
   { path: "/detection", label: "Detection Engineering", group: "Detection & Response", icon: "⟠", roadmap: true },
   // Threat Intelligence
-  { path: "/threat-intel", label: "Threat Intelligence", group: "Threat Intel", icon: "🛰", roadmap: true },
+  { path: "/threat-intel", label: "Threat Intelligence", group: "Threat Intel", icon: "🛰" },
   { path: "/iocs", label: "IOC Management", group: "Threat Intel", icon: "⬡", roadmap: true },
-  { path: "/mitre", label: "MITRE ATT&CK", group: "Threat Intel", icon: "⛃", roadmap: true },
+  { path: "/mitre", label: "MITRE ATT&CK", group: "Threat Intel", icon: "⛃" },
   { path: "/ueba", label: "UEBA", group: "Threat Intel", icon: "👣", roadmap: true },
   // Governance
-  { path: "/assets", label: "Asset Management", group: "Governance", icon: "🖥", roadmap: true },
-  { path: "/vulns", label: "Vulnerabilities", group: "Governance", icon: "🐞", roadmap: true },
-  { path: "/compliance", label: "Compliance Center", group: "Governance", icon: "✔", roadmap: true },
+  { path: "/assets", label: "Asset Management", group: "Governance", icon: "🖥" },
+  { path: "/vulns", label: "Vulnerabilities", group: "Governance", icon: "🐞" },
+  { path: "/compliance", label: "Compliance Center", group: "Governance", icon: "✔" },
   { path: "/risk", label: "Risk Management", group: "Governance", icon: "📈", roadmap: true },
   // AI
   { path: "/copilot", label: "AI Copilot", group: "AI", icon: "✨", roadmap: true },
