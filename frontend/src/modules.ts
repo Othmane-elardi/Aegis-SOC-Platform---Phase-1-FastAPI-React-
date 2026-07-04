@@ -16,21 +16,21 @@ export const MODULES: ModuleDef[] = [
   { path: "/analyst", label: "Analyst Workspace", group: "Dashboards", icon: "◱", roadmap: true },
   // Detection & Response
   { path: "/incidents", label: "Incident Management", group: "Detection & Response", icon: "⚑" },
-  { path: "/cases", label: "Case Management", group: "Detection & Response", icon: "🗂", roadmap: true },
+  { path: "/cases", label: "Case Management", group: "Detection & Response", icon: "🗂" },
   { path: "/siem", label: "SIEM", group: "Detection & Response", icon: "🛢", roadmap: true },
   { path: "/soar", label: "SOAR Playbooks", group: "Detection & Response", icon: "⚙", roadmap: true },
   { path: "/hunting", label: "Threat Hunting", group: "Detection & Response", icon: "🎯", roadmap: true },
   { path: "/detection", label: "Detection Engineering", group: "Detection & Response", icon: "⟠", roadmap: true },
   // Threat Intelligence
   { path: "/threat-intel", label: "Threat Intelligence", group: "Threat Intel", icon: "🛰" },
-  { path: "/iocs", label: "IOC Management", group: "Threat Intel", icon: "⬡", roadmap: true },
+  { path: "/iocs", label: "IOC Management", group: "Threat Intel", icon: "⬡" },
   { path: "/mitre", label: "MITRE ATT&CK", group: "Threat Intel", icon: "⛃" },
-  { path: "/ueba", label: "UEBA", group: "Threat Intel", icon: "👣", roadmap: true },
+  { path: "/ueba", label: "UEBA", group: "Threat Intel", icon: "👣" },
   // Governance
   { path: "/assets", label: "Asset Management", group: "Governance", icon: "🖥" },
   { path: "/vulns", label: "Vulnerabilities", group: "Governance", icon: "🐞" },
   { path: "/compliance", label: "Compliance Center", group: "Governance", icon: "✔" },
-  { path: "/risk", label: "Risk Management", group: "Governance", icon: "📈", roadmap: true },
+  { path: "/risk", label: "Risk Management", group: "Governance", icon: "📈" },
   // AI
   { path: "/copilot", label: "AI Copilot", group: "AI", icon: "✨", roadmap: true },
   { path: "/kb", label: "Knowledge Base (RAG)", group: "AI", icon: "📚", roadmap: true },

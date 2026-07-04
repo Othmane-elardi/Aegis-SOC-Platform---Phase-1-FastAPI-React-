@@ -88,6 +88,10 @@ const STATUS: Record<string, string> = {
   dormant: "bg-muted/15 text-muted border-border",
   online: "bg-low/15 text-low border-low/40",
   offline: "bg-muted/15 text-muted border-border",
+  whitelisted: "bg-info/15 text-info border-info/40",
+  expired: "bg-muted/15 text-muted border-border",
+  in_review: "bg-med/15 text-med border-med/40",
+  closed: "bg-low/15 text-low border-low/40",
 };
 const VERDICT: Record<string, string> = {
   malicious: "bg-crit/15 text-crit border-crit/40",

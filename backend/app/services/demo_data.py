@@ -447,6 +447,229 @@ def compliance_controls(limit: int = 30) -> list[dict]:
     return out
 
 
+def _ioc_value(kind: str, rng: random.Random, i: int) -> str:
+    return {
+        "ip": f"{rng.randint(11,223)}.{rng.randint(0,255)}.{rng.randint(0,255)}.{rng.randint(1,254)}",
+        "domain": rng.choice(["evil-cdn.ru", "login-secure.tk", "update-flash.cn", "pay-invoice.xyz", "cloud-sync.top"]),
+        "hash": hashlib.sha256(f"ioc-{i}".encode()).hexdigest(),
+        "url": "http://malicious.example/payload",
+    }[kind]
+
+
+# ── IOC Management ────────────────────────────────────────────────────────
+def ioc_management(limit: int = 60) -> list[dict]:
+    rng = _rng("ioc-mgmt")
+    kinds = ["ip", "domain", "hash", "url"]
+    sources = ["MISP", "VirusTotal", "Recorded Future", "Interne (SOC)", "OTX AlienVault"]
+    out = []
+    for i in range(limit):
+        kind = rng.choice(kinds)
+        added = _now() - timedelta(days=rng.randint(0, 60))
+        ttl_days = rng.choice([30, 60, 90, 180])
+        expires = added + timedelta(days=ttl_days)
+        out.append({
+            "id": f"IOC-{6000 + i}",
+            "type": kind,
+            "value": _ioc_value(kind, rng, i),
+            "verdict": rng.choice(["malicious", "suspicious", "clean"]),
+            "confidence": rng.randint(40, 99),
+            "source": rng.choice(sources),
+            "tags": rng.sample(["ransomware", "phishing", "c2", "botnet", "apt", "scanner"], k=rng.randint(1, 2)),
+            "matches": rng.randint(0, 240),
+            "status": "expired" if expires < _now() else rng.choices(["active", "whitelisted"], weights=[9, 1])[0],
+            "added_at": added.isoformat(),
+            "expires_at": expires.isoformat(),
+        })
+    out.sort(key=lambda x: x["matches"], reverse=True)
+    return out
+
+
+def ioc_summary(items: list[dict] | None = None) -> dict:
+    items = items or ioc_management()
+    rng = _rng("ioc-sum")
+    active = [i for i in items if i["status"] == "active"]
+    return {
+        "total": len(items),
+        "active": len(active),
+        "expiring_soon": sum(1 for i in active if datetime.fromisoformat(i["expires_at"]) - _now() < timedelta(days=7)),
+        "matches_today": rng.randint(80, 400),
+        "false_positive_rate": round(rng.uniform(2.0, 8.0), 1),
+    }
+
+
+def ioc_overview() -> dict:
+    items = ioc_management()
+    return {"summary": ioc_summary(items), "items": items}
+
+
+# ── UEBA (User & Entity Behavior Analytics) ──────────────────────────────
+UEBA_DEPARTMENTS = ["Finance", "RH", "IT", "Ventes", "Direction", "R&D"]
+ANOMALY_TYPES = [
+    "Voyage impossible (connexions géo-incohérentes)", "Téléchargement de masse inhabituel",
+    "Accès hors horaires habituels", "Pic d'utilisation de privilèges", "Accès à des ressources jamais utilisées",
+    "Volume d'e-mails sortants anormal", "Connexion depuis un nouvel appareil non enrôlé",
+]
+
+
+def ueba_entities(limit: int = 40) -> list[dict]:
+    rng = _rng("ueba-ent")
+    first_names = ["Amine", "Léa", "Sami", "Karim", "Nora", "Yassine", "Chloé", "Omar", "Inès", "Hugo"]
+    last_names = ["Martin", "Dubois", "Nguyen", "Moreau", "Bennani", "Alaoui", "Girard", "Lefevre"]
+    out = []
+    for i in range(limit):
+        risk = rng.randint(5, 98)
+        out.append({
+            "id": f"ENT-{7000 + i}",
+            "name": f"{rng.choice(first_names)} {rng.choice(last_names)}",
+            "department": rng.choice(UEBA_DEPARTMENTS),
+            "risk_score": risk,
+            "anomalies_7d": rng.randint(0, 12),
+            "baseline_deviation_pct": rng.randint(-20, 180),
+            "last_anomaly": (_now() - timedelta(hours=rng.randint(1, 400))).isoformat(),
+        })
+    out.sort(key=lambda x: x["risk_score"], reverse=True)
+    return out
+
+
+def ueba_anomalies(limit: int = 25) -> list[dict]:
+    rng = _rng("ueba-anom")
+    entities = ueba_entities()
+    out = []
+    for i in range(limit):
+        entity = rng.choice(entities)
+        severity = rng.choices(["critical", "high", "medium", "low"], weights=[1, 3, 5, 3])[0]
+        out.append({
+            "id": f"ANOM-{8000 + i}",
+            "entity": entity["name"],
+            "department": entity["department"],
+            "type": rng.choice(ANOMALY_TYPES),
+            "severity": severity,
+            "detected_at": (_now() - timedelta(hours=rng.randint(0, 72))).isoformat(),
+        })
+    out.sort(key=lambda x: x["detected_at"], reverse=True)
+    return out
+
+
+def ueba_summary(entities: list[dict] | None = None) -> dict:
+    entities = entities or ueba_entities()
+    rng = _rng("ueba-sum")
+    return {
+        "entities_monitored": len(entities),
+        "high_risk": sum(1 for e in entities if e["risk_score"] >= 70),
+        "anomalies_today": rng.randint(6, 34),
+        "avg_risk_score": round(sum(e["risk_score"] for e in entities) / len(entities), 1),
+    }
+
+
+def ueba_overview() -> dict:
+    entities = ueba_entities()
+    return {"summary": ueba_summary(entities), "entities": entities, "anomalies": ueba_anomalies()}
+
+
+# ── Risk Management ───────────────────────────────────────────────────────
+RISK_CATEGORIES = ["Technique", "Opérationnel", "Conformité", "Tiers / Fournisseur", "Stratégique"]
+RISK_TITLES = [
+    "Dépendance à un fournisseur cloud unique", "Absence de MFA sur comptes à privilèges legacy",
+    "Segmentation réseau insuffisante en environnement OT", "Obsolescence de composants tiers non patchés",
+    "Sensibilisation insuffisante au phishing", "Plan de continuité d'activité non testé",
+    "Accès tiers non revus périodiquement", "Chiffrement absent sur sauvegardes hors site",
+    "Shadow IT sur applications SaaS non validées", "Délai de détection élevé sur environnement cloud",
+]
+RISK_STATUSES = ["open", "mitigating", "accepted_risk", "closed"]
+
+
+def risk_register(limit: int = 24) -> list[dict]:
+    rng = _rng("risk-reg")
+    out = []
+    for i in range(limit):
+        likelihood = rng.randint(1, 5)
+        impact = rng.randint(1, 5)
+        score = likelihood * impact
+        out.append({
+            "id": f"RISK-{900 + i}",
+            "title": rng.choice(RISK_TITLES),
+            "category": rng.choice(RISK_CATEGORIES),
+            "likelihood": likelihood,
+            "impact": impact,
+            "score": score,
+            "level": "critical" if score >= 20 else "high" if score >= 12 else "medium" if score >= 6 else "low",
+            "owner": rng.choice(ANALYSTS)["name"],
+            "status": rng.choices(RISK_STATUSES, weights=[3, 3, 2, 2])[0],
+            "updated_at": (_now() - timedelta(days=rng.randint(0, 90))).isoformat(),
+        })
+    out.sort(key=lambda x: x["score"], reverse=True)
+    return out
+
+
+def risk_summary(items: list[dict] | None = None) -> dict:
+    items = items or risk_register()
+    by_category: dict[str, int] = {}
+    for r in items:
+        by_category[r["category"]] = by_category.get(r["category"], 0) + 1
+    return {
+        "total": len(items),
+        "critical_high": sum(1 for r in items if r["level"] in ("critical", "high")),
+        "open": sum(1 for r in items if r["status"] == "open"),
+        "avg_score": round(sum(r["score"] for r in items) / len(items), 1),
+        "by_category": by_category,
+    }
+
+
+def risk_overview() -> dict:
+    items = risk_register()
+    return {"summary": risk_summary(items), "items": items}
+
+
+# ── Case Management ───────────────────────────────────────────────────────
+CASE_TITLES = [
+    "Investigation compromission compte à privilèges", "Suspicion d'exfiltration de données client",
+    "Analyse forensique poste de travail direction", "Campagne de phishing ciblée — RH",
+    "Revue post-incident ransomware", "Enquête sur activité réseau anormale (OT)",
+    "Suspicion de fraude interne — accès financiers", "Investigation malware sur serveur exposé",
+]
+CASE_STATUSES = ["open", "in_review", "closed"]
+CASE_PRIORITIES = ["critical", "high", "medium", "low"]
+
+
+def cases(limit: int = 30) -> list[dict]:
+    rng = _rng("cases")
+    out = []
+    for i in range(limit):
+        created = _now() - timedelta(days=rng.randint(0, 45))
+        status = rng.choices(CASE_STATUSES, weights=[3, 2, 4])[0]
+        priority = rng.choice(CASE_PRIORITIES)
+        sla_days = {"critical": 2, "high": 5, "medium": 10, "low": 20}[priority]
+        due = created + timedelta(days=sla_days)
+        out.append({
+            "id": f"CASE-{created.strftime('%Y%m')}-{400 + i}",
+            "title": rng.choice(CASE_TITLES),
+            "priority": priority,
+            "status": status,
+            "analyst": rng.choice(ANALYSTS)["name"],
+            "related_incidents": rng.randint(0, 5),
+            "created_at": created.isoformat(),
+            "due_at": due.isoformat(),
+            "overdue": status != "closed" and due < _now(),
+        })
+    out.sort(key=lambda x: x["created_at"], reverse=True)
+    return out
+
+
+def cases_summary(items: list[dict] | None = None) -> dict:
+    items = items or cases()
+    return {
+        "total": len(items),
+        "open": sum(1 for c in items if c["status"] == "open"),
+        "overdue": sum(1 for c in items if c["overdue"]),
+        "closed": sum(1 for c in items if c["status"] == "closed"),
+    }
+
+
+def cases_overview() -> dict:
+    items = cases()
+    return {"summary": cases_summary(items), "items": items}
+
+
 def compliance_overview() -> dict:
     frameworks = compliance_frameworks()
     return {

@@ -6,7 +6,20 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from . import __version__
-from .api.routes import assets, auth, compliance, dashboards, incidents, mitre, threat_intel, vulnerabilities
+from .api.routes import (
+    assets,
+    auth,
+    cases,
+    compliance,
+    dashboards,
+    incidents,
+    iocs,
+    mitre,
+    risk,
+    threat_intel,
+    ueba,
+    vulnerabilities,
+)
 from .core.config import settings
 from .db.seed import init_db
 
@@ -43,6 +56,10 @@ app.include_router(mitre.router, prefix=settings.API_V1)
 app.include_router(assets.router, prefix=settings.API_V1)
 app.include_router(vulnerabilities.router, prefix=settings.API_V1)
 app.include_router(compliance.router, prefix=settings.API_V1)
+app.include_router(iocs.router, prefix=settings.API_V1)
+app.include_router(ueba.router, prefix=settings.API_V1)
+app.include_router(risk.router, prefix=settings.API_V1)
+app.include_router(cases.router, prefix=settings.API_V1)
 
 
 @app.get("/health", tags=["system"])

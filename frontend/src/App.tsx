@@ -10,6 +10,10 @@ import Mitre from "./pages/Mitre";
 import Assets from "./pages/Assets";
 import Vulnerabilities from "./pages/Vulnerabilities";
 import Compliance from "./pages/Compliance";
+import Iocs from "./pages/Iocs";
+import Ueba from "./pages/Ueba";
+import Risk from "./pages/Risk";
+import Cases from "./pages/Cases";
 import ModulePlaceholder from "./pages/ModulePlaceholder";
 import { MODULES } from "./modules";
 
@@ -39,6 +43,10 @@ export default function App() {
         <Route path="/assets" element={<Assets />} />
         <Route path="/vulns" element={<Vulnerabilities />} />
         <Route path="/compliance" element={<Compliance />} />
+        <Route path="/iocs" element={<Iocs />} />
+        <Route path="/ueba" element={<Ueba />} />
+        <Route path="/risk" element={<Risk />} />
+        <Route path="/cases" element={<Cases />} />
         {/* Modules de la roadmap : squelettes honnêtes (badge « Roadmap ») pour
             montrer l'étendue de la plateforme sans simuler une profondeur absente. */}
         {MODULES.filter((m) => m.roadmap).map((m) => (
