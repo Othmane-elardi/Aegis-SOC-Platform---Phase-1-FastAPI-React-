@@ -13,7 +13,7 @@ export const MODULES: ModuleDef[] = [
   // Dashboards
   { path: "/", label: "SOC Dashboard", group: "Dashboards", icon: "▤" },
   { path: "/executive", label: "Executive (CISO)", group: "Dashboards", icon: "◆", roles: ["ciso", "soc_manager"] },
-  { path: "/analyst", label: "Analyst Workspace", group: "Dashboards", icon: "◱", roadmap: true },
+  { path: "/analyst", label: "Analyst Workspace", group: "Dashboards", icon: "◱" },
   // Detection & Response
   { path: "/incidents", label: "Incident Management", group: "Detection & Response", icon: "⚑" },
   { path: "/cases", label: "Case Management", group: "Detection & Response", icon: "🗂" },
@@ -36,8 +36,8 @@ export const MODULES: ModuleDef[] = [
   { path: "/kb", label: "Knowledge Base (RAG)", group: "AI", icon: "📚", roadmap: true },
   // Platform
   { path: "/reports", label: "Reports Center", group: "Platform", icon: "🖨", roadmap: true },
-  { path: "/audit", label: "Audit Center", group: "Platform", icon: "🧾", roadmap: true, roles: ["auditor", "soc_manager"] },
-  { path: "/admin", label: "Administration", group: "Platform", icon: "🛡", roadmap: true, roles: ["admin"] },
+  { path: "/audit", label: "Audit Center", group: "Platform", icon: "🧾", roles: ["auditor", "soc_manager"] },
+  { path: "/admin", label: "Administration", group: "Platform", icon: "🛡", roles: ["admin"] },
 ];
 
 export const GROUPS = ["Dashboards", "Detection & Response", "Threat Intel", "Governance", "AI", "Platform"];

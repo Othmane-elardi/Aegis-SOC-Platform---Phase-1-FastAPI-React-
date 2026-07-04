@@ -7,7 +7,10 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from . import __version__
 from .api.routes import (
+    admin,
+    analyst,
     assets,
+    audit,
     auth,
     cases,
     compliance,
@@ -68,6 +71,9 @@ app.include_router(siem.router, prefix=settings.API_V1)
 app.include_router(soar.router, prefix=settings.API_V1)
 app.include_router(detection.router, prefix=settings.API_V1)
 app.include_router(hunting.router, prefix=settings.API_V1)
+app.include_router(analyst.router, prefix=settings.API_V1)
+app.include_router(audit.router, prefix=settings.API_V1)
+app.include_router(admin.router, prefix=settings.API_V1)
 
 
 @app.get("/health", tags=["system"])

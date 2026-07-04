@@ -862,6 +862,100 @@ def hunting_overview() -> dict:
     return {"summary": hunting_summary(items), "hunts": items}
 
 
+# ── Analyst Workspace ──────────────────────────────────────────────────────
+def analyst_workspace(analyst_name: str) -> dict:
+    rng = _rng(f"workspace-{analyst_name}")
+    my_incidents = incidents(15)[:6]
+    for inc in my_incidents:
+        inc["assignee"] = analyst_name
+    my_cases = cases(10)[:4]
+    for c in my_cases:
+        c["analyst"] = analyst_name
+    return {
+        "analyst": analyst_name,
+        "kpis": {
+            "open_assigned": rng.randint(3, 9),
+            "resolved_today": rng.randint(2, 8),
+            "avg_response_min": round(rng.uniform(4, 18), 1),
+            "sla_at_risk": rng.randint(0, 3),
+        },
+        "incidents": my_incidents,
+        "cases": my_cases,
+        "shift": {
+            "team_on_duty": rng.choice(["Équipe A", "Équipe B", "Équipe C"]),
+            "handover_at": (_now() + timedelta(hours=rng.randint(1, 8))).isoformat(),
+        },
+    }
+
+
+# ── Audit Center ───────────────────────────────────────────────────────────
+AUDIT_ACTIONS = [
+    "Connexion réussie", "Échec de connexion", "Modification de rôle utilisateur",
+    "Changement de statut d'incident", "Export de rapport", "Modification de règle de détection",
+    "Consultation de dossier confidentiel", "Désactivation d'un compte", "Création d'une clé API",
+    "Modification de politique de conformité",
+]
+AUDIT_ACTORS = ["admin@aegis.local", "ciso@aegis.local", "manager@aegis.local", "analyst@aegis.local", "auditor@aegis.local"]
+
+
+def audit_log(limit: int = 60) -> list[dict]:
+    rng = _rng("audit")
+    out = []
+    for i in range(limit):
+        action = rng.choice(AUDIT_ACTIONS)
+        failed = "Échec" in action
+        out.append({
+            "id": f"AUD-{10000 + i}",
+            "timestamp": (_now() - timedelta(minutes=rng.randint(0, 60 * 24 * 14))).isoformat(),
+            "actor": rng.choice(AUDIT_ACTORS),
+            "action": action,
+            "target": rng.choice(["INC-2026-2031", "Règle RULE-204", "Utilisateur k.moreau", "Rapport SOC Mensuel", "Politique ISO 27001"]),
+            "ip_address": f"{rng.randint(11,223)}.{rng.randint(0,255)}.{rng.randint(0,255)}.{rng.randint(1,254)}",
+            "result": "failed" if failed and rng.random() < 0.7 else "success",
+        })
+    out.sort(key=lambda x: x["timestamp"], reverse=True)
+    return out
+
+
+def audit_summary(items: list[dict] | None = None) -> dict:
+    items = items or audit_log()
+    return {
+        "events_today": sum(1 for a in items if datetime.fromisoformat(a["timestamp"]) > _now() - timedelta(days=1)),
+        "failed_logins_24h": sum(1 for a in items if a["action"] == "Échec de connexion" and datetime.fromisoformat(a["timestamp"]) > _now() - timedelta(days=1)),
+        "admin_actions_7d": sum(1 for a in items if a["actor"] == "admin@aegis.local" and datetime.fromisoformat(a["timestamp"]) > _now() - timedelta(days=7)),
+        "exports_7d": sum(1 for a in items if a["action"] == "Export de rapport" and datetime.fromisoformat(a["timestamp"]) > _now() - timedelta(days=7)),
+    }
+
+
+def audit_overview() -> dict:
+    items = audit_log()
+    return {"summary": audit_summary(items), "items": items}
+
+
+# ── Administration ─────────────────────────────────────────────────────────
+def admin_system_settings() -> dict:
+    rng = _rng("admin-sys")
+    return {
+        "mfa_enforced": True,
+        "sso_enabled": rng.choice([True, False]),
+        "session_timeout_min": rng.choice([30, 45, 60]),
+        "password_policy": "Min. 12 caractères, rotation 90 jours, MFA obligatoire",
+        "api_keys_active": rng.randint(3, 12),
+        "data_retention_days": 365,
+    }
+
+
+def admin_license() -> dict:
+    rng = _rng("admin-lic")
+    seats_total = 50
+    return {
+        "plan": "Enterprise",
+        "seats_used": rng.randint(18, seats_total),
+        "seats_total": seats_total,
+        "renews_at": (_now() + timedelta(days=rng.randint(30, 300))).isoformat(),
+    }
+
+
 def compliance_overview() -> dict:
     frameworks = compliance_frameworks()
     return {

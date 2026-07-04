@@ -18,6 +18,9 @@ import Siem from "./pages/Siem";
 import Soar from "./pages/Soar";
 import Detection from "./pages/Detection";
 import Hunting from "./pages/Hunting";
+import AnalystWorkspace from "./pages/AnalystWorkspace";
+import Audit from "./pages/Audit";
+import Admin from "./pages/Admin";
 import ModulePlaceholder from "./pages/ModulePlaceholder";
 import { MODULES } from "./modules";
 
@@ -55,6 +58,9 @@ export default function App() {
         <Route path="/soar" element={<Soar />} />
         <Route path="/detection" element={<Detection />} />
         <Route path="/hunting" element={<Hunting />} />
+        <Route path="/analyst" element={<AnalystWorkspace />} />
+        <Route path="/audit" element={<Audit />} />
+        <Route path="/admin" element={<Admin />} />
         {/* Modules de la roadmap : squelettes honnêtes (badge « Roadmap ») pour
             montrer l'étendue de la plateforme sans simuler une profondeur absente. */}
         {MODULES.filter((m) => m.roadmap).map((m) => (
