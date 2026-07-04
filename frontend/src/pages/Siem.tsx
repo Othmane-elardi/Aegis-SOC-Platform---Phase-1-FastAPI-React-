@@ -19,6 +19,8 @@ interface Overview {
     sources_connected: number;
     storage_used_tb: number;
     retention_days: number;
+    mode: "demo" | "wazuh";
+    connected: boolean;
   };
   sources: { source: string; events: number }[];
   events: SiemEvent[];
@@ -38,7 +40,20 @@ export default function Siem() {
 
   return (
     <div>
-      <PageHeader title="SIEM" subtitle="Ingestion et corrélation d'événements de sécurité multi-sources" />
+      <div className="mb-6 flex items-start justify-between gap-3">
+        <PageHeader title="SIEM" subtitle="Ingestion et corrélation d'événements de sécurité multi-sources" />
+        <span
+          className={`mt-1 whitespace-nowrap rounded-lg border px-2.5 py-1 text-[11px] font-bold uppercase ${
+            s.mode === "wazuh" && s.connected
+              ? "border-low/40 bg-low/15 text-low"
+              : s.mode === "wazuh"
+                ? "border-crit/40 bg-crit/15 text-crit"
+                : "border-info/40 bg-info/15 text-info"
+          }`}
+        >
+          {s.mode === "wazuh" ? (s.connected ? "● Wazuh connecté" : "○ Wazuh injoignable") : "Mode démo"}
+        </span>
+      </div>
 
       <div className="mb-4 grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
         <KpiCard icon="⚡" accent="brand" label="Événements / sec" value={s.events_per_sec.toLocaleString("fr-FR")} />

@@ -36,6 +36,7 @@ from .api.routes import (
 )
 from .core.config import settings
 from .db.seed import init_db
+from .services.wazuh_ingest import start_background_ingestion
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 
@@ -43,6 +44,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(na
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()  # crée les tables + amorce les comptes de démo
+    start_background_ingestion()  # no-op si DEMO_MODE=true ou Wazuh non configuré
     yield
 
 

@@ -502,6 +502,21 @@ def ioc_overview() -> dict:
     return {"summary": ioc_summary(items), "items": items}
 
 
+def vt_lookup(ioc_type: str, ioc_value: str) -> dict:
+    """Résultat VirusTotal simulé — utilisé quand VT_API_KEY n'est pas configuré."""
+    rng = _rng(f"vt-{ioc_value}")
+    mal = rng.randint(0, 12)
+    sus = rng.randint(0, 5)
+    verdict = "MALICIOUS" if mal >= 5 else "SUSPICIOUS" if (mal >= 1 or sus >= 3) else "CLEAN"
+    return {
+        "found": True, "ioc_type": ioc_type, "ioc_value": ioc_value, "demo": True,
+        "malicious": mal, "suspicious": sus, "harmless": rng.randint(40, 70), "undetected": rng.randint(0, 10),
+        "total_engines": mal + sus + rng.randint(40, 70), "reputation": rng.randint(-20, 20),
+        "verdict": verdict,
+        "link": f"https://www.virustotal.com/gui/{'ip-address' if ioc_type == 'ip' else ioc_type + 's'}/{ioc_value}",
+    }
+
+
 # ── UEBA (User & Entity Behavior Analytics) ──────────────────────────────
 UEBA_DEPARTMENTS = ["Finance", "RH", "IT", "Ventes", "Direction", "R&D"]
 ANOMALY_TYPES = [
@@ -705,6 +720,7 @@ def siem_summary() -> dict:
         "sources_connected": len(SIEM_SOURCES),
         "storage_used_tb": round(rng.uniform(4.2, 9.8), 1),
         "retention_days": 180,
+        "mode": "demo", "connected": False,
     }
 
 

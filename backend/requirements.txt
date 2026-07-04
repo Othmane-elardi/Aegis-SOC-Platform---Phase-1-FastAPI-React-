@@ -8,3 +8,11 @@ bcrypt==4.2.1
 python-multipart==0.0.20
 # Driver Postgres (production / docker-compose). SQLite en dev ne l'utilise pas.
 psycopg[binary]==3.2.3
+
+# Intégrations réelles (actives seulement si DEMO_MODE=false, voir .env.example)
+elasticsearch==8.14.0
+requests==2.32.3
+openai>=1.40.0,<2
+
+# Tests (TestClient de Starlette)
+httpx==0.28.1

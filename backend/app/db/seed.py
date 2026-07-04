@@ -1,10 +1,13 @@
-"""Création des tables + amorçage des comptes et tenants de démonstration au démarrage."""
+"""Création des tables + amorçage des comptes, tenants et incidents de démonstration au démarrage."""
 import logging
+from datetime import datetime
 
 from ..core.config import settings
 from ..core.security import hash_password
+from ..models.incident import Incident
 from ..models.tenant import Tenant
 from ..models.user import User
+from ..services import demo_data
 from .base import Base, SessionLocal, engine
 
 logger = logging.getLogger("aegis.seed")
@@ -27,6 +30,21 @@ DEMO_TENANT_USERS = [
     ("globex", "ciso@globex.demo", "ciso1234", "CISO Globex", "ciso"),
     ("northwind", "admin@northwind.demo", "admin1234", "Administrateur Plateforme", "admin"),
 ]
+
+
+def _seed_incidents_for_tenant(db, tenant_id: str, count: int) -> None:
+    """Amorce des incidents *persistants* et actionnables (contrairement aux autres
+    modules qui restent générés à la volée) — voir models/incident.py."""
+    for inc in demo_data.incidents(count):
+        db.add(Incident(
+            id=f"{tenant_id.upper()}-{inc['id']}", tenant_id=tenant_id,
+            title=inc["title"], description=inc["title"], severity=inc["severity"], status=inc["status"],
+            asset=inc["asset"], source_ip=inc["source_ip"], mitre_tactic=inc["mitre_tactic"],
+            risk_score=inc["risk_score"], assignee=inc["assignee"] or "", source="demo",
+            sla_breached=inc["sla_breached"],
+            timeline=[{"timestamp": inc["created_at"], "event": "Incident créé par corrélation SIEM (démo)", "actor": "system"}],
+            created_at=datetime.fromisoformat(inc["created_at"]),
+        ))
 
 
 def init_db() -> None:
@@ -53,5 +71,12 @@ def init_db() -> None:
             db.commit()
             logger.warning("[seed] Comptes amorcés — admin=%s (changez les mots de passe en production).",
                            settings.FIRST_ADMIN_EMAIL)
+
+        if db.query(Incident).count() == 0 and settings.DEMO_MODE:
+            _seed_incidents_for_tenant(db, "default", 40)
+            _seed_incidents_for_tenant(db, "globex", 15)
+            _seed_incidents_for_tenant(db, "northwind", 8)
+            db.commit()
+            logger.info("[seed] Incidents de démo amorcés (persistants, actionnables).")
     finally:
         db.close()

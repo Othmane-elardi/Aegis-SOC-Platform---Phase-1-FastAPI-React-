@@ -33,7 +33,40 @@ class Settings(BaseSettings):
     FIRST_ADMIN_PASSWORD: str = "admin1234"
 
     # ── Mode démo (données synthétiques réalistes) ────────────
+    # DEMO_MODE=true (défaut) : SIEM/SOAR/Copilot alimentés par des données
+    # synthétiques, aucun appel réseau vers Wazuh/ELK/IA/VirusTotal. Passer à
+    # false pour une intégration réelle — voir les variables ci-dessous,
+    # toutes à définir dans backend/.env (jamais commité, voir .gitignore).
     DEMO_MODE: bool = True
+
+    # ── Elasticsearch / Wazuh (intégration SIEM réelle) ───────
+    ES_HOST: str = "https://localhost:9200"
+    ES_USER: str = ""
+    ES_PASS: str = ""
+    WAZUH_HOST: str = "https://localhost"
+    WAZUH_USER: str = ""
+    WAZUH_PASS: str = ""
+    # Niveau de sévérité Wazuh (0-15) à partir duquel une réponse active
+    # automatique (blocage IP, etc.) peut être déclenchée par le pipeline IA.
+    AR_MIN_LEVEL: int = 10
+
+    # ── IA — fournisseur actif (voir services/ai_provider.py) ─
+    # "groq" | "openrouter" | "deepseek" | "ollama" | "openai_compatible"
+    AI_PROVIDER: str = "groq"
+    GROQ_API_KEY: str = ""
+    GROQ_MODEL: str = "llama-3.3-70b-versatile"
+    OPENROUTER_API_KEY: str = ""
+    OPENROUTER_MODEL: str = "meta-llama/llama-3.3-70b-instruct:free"
+    DEEPSEEK_API_KEY: str = ""
+    DEEPSEEK_MODEL: str = "deepseek-v4-flash"
+    OLLAMA_HOST: str = "http://localhost:11434"
+    OLLAMA_MODEL: str = "llama3.1"
+    OPENAI_COMPAT_BASE_URL: str = ""
+    OPENAI_COMPAT_API_KEY: str = ""
+    OPENAI_COMPAT_MODEL: str = ""
+
+    # ── Threat Intel : VirusTotal ──────────────────────────────
+    VT_API_KEY: str = ""
 
 
 @lru_cache

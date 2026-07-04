@@ -1,7 +1,19 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Badge, Card, KpiCard, PageHeader } from "../components/ui";
 import { api } from "../lib/api";
+
+interface VtResult {
+  found?: boolean;
+  error?: string;
+  demo?: boolean;
+  malicious?: number;
+  suspicious?: number;
+  total_engines?: number;
+  verdict?: string;
+  link?: string;
+  message?: string;
+}
 
 interface Ioc {
   id: string;
@@ -29,11 +41,25 @@ interface Overview {
 
 const TYPES = ["", "ip", "domain", "hash", "url"];
 
+const IOC_TYPES = [
+  { value: "ip", label: "IP" }, { value: "domain", label: "Domaine" },
+  { value: "sha256", label: "Hash (SHA256/MD5)" }, { value: "url", label: "URL" },
+];
+
 export default function Iocs() {
   const [type, setType] = useState("");
+  const [lookupType, setLookupType] = useState("ip");
+  const [lookupValue, setLookupValue] = useState("");
+  const [vtResult, setVtResult] = useState<VtResult | null>(null);
+
   const { data, isLoading } = useQuery({
     queryKey: ["iocs"],
     queryFn: async () => (await api.get<Overview>("/iocs/overview")).data,
+  });
+
+  const lookup = useMutation({
+    mutationFn: async () => (await api.post<VtResult>("/iocs/lookup", { ioc_type: lookupType, ioc_value: lookupValue })).data,
+    onSuccess: setVtResult,
   });
 
   if (isLoading || !data) return <div className="text-muted">Chargement des indicateurs…</div>;
@@ -50,6 +76,43 @@ export default function Iocs() {
         <KpiCard icon="⏳" accent="med" label="Expirent sous 7j" value={s.expiring_soon} />
         <KpiCard icon="🎯" accent="info" label="Correspondances (jour)" value={s.matches_today} />
         <KpiCard icon="⚠" accent="high" label="Taux faux positifs" value={`${s.false_positive_rate}%`} />
+      </div>
+
+      <div className="mb-4">
+        <Card title="Recherche VirusTotal" badge="enrichissement">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
+            <select className="input" value={lookupType} onChange={(e) => setLookupType(e.target.value)}>
+              {IOC_TYPES.map((t) => (
+                <option key={t.value} value={t.value}>{t.label}</option>
+              ))}
+            </select>
+            <input
+              className="input md:col-span-2"
+              placeholder="Valeur à rechercher (ex. 185.220.101.5)"
+              value={lookupValue}
+              onChange={(e) => setLookupValue(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && lookupValue.trim() && lookup.mutate()}
+            />
+            <button className="btn-brand" disabled={!lookupValue.trim() || lookup.isPending} onClick={() => lookup.mutate()}>
+              {lookup.isPending ? "Recherche…" : "Rechercher"}
+            </button>
+          </div>
+          {vtResult && (
+            <div className="mt-3 rounded-lg border border-border bg-surface2 px-3.5 py-2.5 text-[12.5px]">
+              {vtResult.error ? (
+                <span className="text-crit">{vtResult.error}</span>
+              ) : vtResult.found === false ? (
+                <span className="text-muted">{vtResult.message}</span>
+              ) : (
+                <span className="text-body">
+                  Verdict : <b className={vtResult.verdict === "MALICIOUS" ? "text-crit" : vtResult.verdict === "SUSPICIOUS" ? "text-med" : "text-low"}>{vtResult.verdict}</b>
+                  {" "}— {vtResult.malicious}/{vtResult.total_engines} moteurs malveillants
+                  {vtResult.demo && <span className="ml-2 text-muted">(résultat simulé — VT_API_KEY non configuré)</span>}
+                </span>
+              )}
+            </div>
+          )}
+        </Card>
       </div>
 
       <Card title="Indicateurs" badge={`${items.length} / ${data.items.length}`}>
