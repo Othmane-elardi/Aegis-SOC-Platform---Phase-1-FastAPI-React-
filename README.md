@@ -9,6 +9,13 @@ Plateforme SOC **enterprise** (SaaS-ready) — refonte complète en architecture
 > Governance, IA et Platform, chacun alimenté par de vrais endpoints API. La
 > Phase 5 (SSO, facturation, observabilité) est livrée en mode démo — architecture
 > et UI réelles, sans connexion à un fournisseur d'identité ou de paiement tiers.
+>
+> **Incident Management est réellement actionnable** (statut, assignation, notes,
+> historique — persisté en base) et la plateforme peut se connecter à un **vrai
+> cluster Wazuh/Elasticsearch** pour ingérer de vraies alertes, les faire analyser
+> par une IA réelle (Groq/OpenRouter/DeepSeek/Ollama), les enrichir via VirusTotal
+> et déclencher une réponse active (blocage IP, isolation…) — voir « Mode réel »
+> ci-dessous. `DEMO_MODE=true` reste le défaut : aucun appel réseau externe.
 
 ## Architecture
 
@@ -96,6 +103,35 @@ invisibles depuis un autre tenant :
 |---|---|---|
 | Globex Financial Group (`globex`) | admin@globex.demo | admin1234 |
 | Northwind Energy (`northwind`)     | admin@northwind.demo | admin1234 |
+
+## Mode réel — connecter un vrai Wazuh/ELK
+
+Par défaut (`DEMO_MODE=true`), aucune intégration n'appelle de service externe.
+Pour brancher une vraie stack Wazuh + Elasticsearch, une IA et VirusTotal :
+
+1. Copier `backend/.env.example` en `backend/.env`.
+2. Passer `DEMO_MODE=false`.
+3. Renseigner `WAZUH_HOST`, `WAZUH_USER`, `WAZUH_PASS`, `ES_HOST`, `ES_USER`,
+   `ES_PASS` (accessibles uniquement si le backend tourne sur le même réseau que
+   ces machines — des IP privées ne sont pas joignables depuis un poste distant).
+4. Renseigner au moins une clé IA (`GROQ_API_KEY` recommandé — gratuit et rapide
+   sur [console.groq.com](https://console.groq.com)) pour l'analyse d'alerte et
+   le Copilot. Sans clé, le pipeline reste fonctionnel mais avec une analyse
+   dégradée (score basé uniquement sur le niveau Wazuh).
+5. `VT_API_KEY` (optionnel) active l'enrichissement IOC réel via VirusTotal.
+6. Redémarrer le backend : un pipeline en tâche de fond (`services/wazuh_ingest.py`)
+   interroge Wazuh/ES toutes les 30s, fait analyser chaque nouvelle alerte par
+   l'IA, l'enrichit, déclenche une réponse active si le niveau de risque le
+   justifie, et crée un incident **persistant** consultable/actionnable dans
+   Incident Management.
+
+Le statut de connexion réel (`● Wazuh connecté` / `○ Wazuh injoignable`) s'affiche
+sur les pages **SIEM** et **SOAR Playbooks**. Aucun de ces identifiants ne doit
+jamais être commité — `backend/.env` est ignoré par git.
+
+**Module Red Team (exécution de commandes via SSH) volontairement exclu** de
+cette intégration — capacité offensive à part, nécessitant une revue de
+sécurité dédiée avant toute activation.
 
 ## Déploiement (Docker)
 
