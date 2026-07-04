@@ -6,7 +6,30 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from . import __version__
-from .api.routes import auth, dashboards, incidents
+from .api.routes import (
+    admin,
+    analyst,
+    assets,
+    audit,
+    auth,
+    cases,
+    compliance,
+    copilot,
+    dashboards,
+    detection,
+    hunting,
+    incidents,
+    iocs,
+    kb,
+    mitre,
+    reports,
+    risk,
+    siem,
+    soar,
+    threat_intel,
+    ueba,
+    vulnerabilities,
+)
 from .core.config import settings
 from .db.seed import init_db
 
@@ -38,6 +61,25 @@ app.add_middleware(
 app.include_router(auth.router, prefix=settings.API_V1)
 app.include_router(dashboards.router, prefix=settings.API_V1)
 app.include_router(incidents.router, prefix=settings.API_V1)
+app.include_router(threat_intel.router, prefix=settings.API_V1)
+app.include_router(mitre.router, prefix=settings.API_V1)
+app.include_router(assets.router, prefix=settings.API_V1)
+app.include_router(vulnerabilities.router, prefix=settings.API_V1)
+app.include_router(compliance.router, prefix=settings.API_V1)
+app.include_router(iocs.router, prefix=settings.API_V1)
+app.include_router(ueba.router, prefix=settings.API_V1)
+app.include_router(risk.router, prefix=settings.API_V1)
+app.include_router(cases.router, prefix=settings.API_V1)
+app.include_router(siem.router, prefix=settings.API_V1)
+app.include_router(soar.router, prefix=settings.API_V1)
+app.include_router(detection.router, prefix=settings.API_V1)
+app.include_router(hunting.router, prefix=settings.API_V1)
+app.include_router(analyst.router, prefix=settings.API_V1)
+app.include_router(audit.router, prefix=settings.API_V1)
+app.include_router(admin.router, prefix=settings.API_V1)
+app.include_router(copilot.router, prefix=settings.API_V1)
+app.include_router(kb.router, prefix=settings.API_V1)
+app.include_router(reports.router, prefix=settings.API_V1)
 
 
 @app.get("/health", tags=["system"])

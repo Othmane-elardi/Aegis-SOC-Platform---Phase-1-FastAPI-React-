@@ -7,6 +7,8 @@
 # Node / frontend
 **/node_modules/
 **/dist/
+**/*.tsbuildinfo
+frontend/.tsbuild/
 
 # Secrets & env
 **/.env
