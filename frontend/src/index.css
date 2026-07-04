@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #080b12;
+  --surface: #111827;
+  --surface2: #161f30;
+  --border: #1f2a3d;
+  --text: #eef2f9;
+  --text2: #aab6cd;
+  --text3: #6f7d98;
+}
+:root.light {
+  --bg: #eef1f7;
+  --surface: #ffffff;
+  --surface2: #f7f9fc;
+  --border: #e3e8f1;
+  --text: #0e1626;
+  --text2: #41506b;
+  --text3: #7b89a3;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Inter", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbars fines, cohérentes avec le thème */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: #2c3a54;
+  border-radius: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+@layer components {
+  .card {
+    @apply rounded-2xl border border-border bg-surface p-5 shadow-card;
+  }
+  .btn-brand {
+    @apply rounded-xl bg-brand px-4 py-2.5 text-sm font-bold text-[#04231f]
+           transition hover:bg-brand-600 disabled:opacity-50;
+  }
+  .input {
+    @apply w-full rounded-xl border border-border bg-surface2 px-3.5 py-2.5 text-sm
+           text-heading outline-none transition focus:border-brand;
+  }
+}
