@@ -3,11 +3,12 @@
 Plateforme SOC **enterprise** (SaaS-ready) — refonte complète en architecture moderne :
 **FastAPI + PostgreSQL + React + TypeScript + TailwindCSS**.
 
-> État : **Phase 1** de la roadmap livrée (architecture, authentification JWT + RBAC,
-> dashboards SOC/Exécutif, Incident Management, threat intel). Les autres modules
-> (SIEM, SOAR, UEBA, Compliance, multi-tenant…) apparaissent dans la navigation
-> avec le badge **SOON** — leur socle technique (API versionnée, RBAC, design system)
-> est déjà en place pour les accueillir.
+> État : **Phases 1 à 3 livrées** (+ Compliance de la Phase 4) — architecture,
+> authentification JWT + RBAC, et **22 modules fonctionnels** couvrant Dashboards,
+> Detection & Response, Threat Intelligence, Governance, IA et Platform, chacun
+> alimenté par des données de démo réalistes via de vrais endpoints API. Il ne
+> reste de la roadmap que le multi-tenant appliqué, la marketplace et les
+> fonctionnalités SaaS Enterprise (Phase 5).
 
 ## Architecture
 
@@ -27,11 +28,26 @@ soc-platform/
 │   ├── src/
 │   │   ├── lib/        # client API (axios), contexte d'auth
 │   │   ├── components/ # Layout (shell), UI (cards, badges)
-│   │   ├── pages/      # Login, Overview (SOC), Executive, Incidents…
-│   │   └── modules.ts  # catalogue des 21 modules (navigation)
+│   │   ├── pages/      # 22 pages (une par module — voir liste ci-dessous)
+│   │   └── modules.ts  # catalogue des 22 modules (navigation)
 │   └── Dockerfile
 └── docker-compose.yml  # postgres + redis + backend + frontend
 ```
+
+## Modules livrés
+
+| Groupe | Modules |
+|---|---|
+| **Dashboards** | SOC Dashboard · Executive (CISO) · Analyst Workspace |
+| **Detection & Response** | Incident Management · Case Management · SIEM · SOAR Playbooks · Threat Hunting · Detection Engineering |
+| **Threat Intel** | Threat Intelligence · IOC Management · MITRE ATT&CK · UEBA |
+| **Governance** | Asset Management · Vulnerabilities · Compliance Center · Risk Management |
+| **IA** | AI Copilot · Knowledge Base (RAG) |
+| **Platform** | Reports Center · Audit Center (auditor/soc_manager) · Administration (admin) |
+
+Chaque module a un routeur API dédié (`backend/app/api/routes/`), un générateur de
+données de démo déterministe (`backend/app/services/demo_data.py`) et une page React
+correspondante (`frontend/src/pages/`) — plus aucun placeholder « roadmap ».
 
 ## Démarrage rapide (développement)
 
@@ -87,7 +103,8 @@ docker compose up --build
 ## Roadmap
 
 - **Phase 1 (livrée)** — Architecture, Auth/RBAC, Dashboards, Incident Management
-- **Phase 2** — SIEM, SOAR (playbooks), Threat Intelligence, Detection Engineering
-- **Phase 3** — IA (Copilot, corrélation, RAG), UEBA
-- **Phase 4** — Compliance, Multi-tenant, Marketplace
-- **Phase 5** — SaaS Enterprise (facturation, SSO SAML/OIDC, observabilité)
+- **Phase 2 (livrée)** — SIEM, SOAR (playbooks), Threat Intelligence, Detection Engineering
+- **Phase 3 (livrée)** — IA (Copilot, RAG/Knowledge Base), UEBA
+- **Phase 4 (partielle)** — Compliance ✅ livré · Multi-tenant (préparé via `tenant_id`,
+  isolation non appliquée) et Marketplace restent à faire
+- **Phase 5 (à faire)** — SaaS Enterprise (facturation, SSO SAML/OIDC, observabilité)
