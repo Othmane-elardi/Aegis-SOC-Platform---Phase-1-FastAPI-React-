@@ -3,12 +3,12 @@
 Plateforme SOC **enterprise** (SaaS-ready) — refonte complète en architecture moderne :
 **FastAPI + PostgreSQL + React + TypeScript + TailwindCSS**.
 
-> État : **Phases 1 à 3 livrées** (+ Compliance de la Phase 4) — architecture,
-> authentification JWT + RBAC, et **22 modules fonctionnels** couvrant Dashboards,
-> Detection & Response, Threat Intelligence, Governance, IA et Platform, chacun
-> alimenté par des données de démo réalistes via de vrais endpoints API. Il ne
-> reste de la roadmap que le multi-tenant appliqué, la marketplace et les
-> fonctionnalités SaaS Enterprise (Phase 5).
+> État : **Phases 1 à 4 livrées** — architecture, authentification JWT + RBAC,
+> isolation **multi-tenant réelle** (pas seulement préparée), et **26 modules
+> fonctionnels** couvrant Dashboards, Detection & Response, Threat Intelligence,
+> Governance, IA et Platform, chacun alimenté par de vrais endpoints API. La
+> Phase 5 (SSO, facturation, observabilité) est livrée en mode démo — architecture
+> et UI réelles, sans connexion à un fournisseur d'identité ou de paiement tiers.
 
 ## Architecture
 
@@ -17,8 +17,8 @@ soc-platform/
 ├── backend/            # API FastAPI (Python)
 │   ├── app/
 │   │   ├── core/       # config, sécurité (JWT + bcrypt)
-│   │   ├── db/         # SQLAlchemy 2.0, session, seed
-│   │   ├── models/     # ORM (User, multi-tenant ready)
+│   │   ├── db/         # SQLAlchemy 2.0, session, seed (tenants + comptes démo)
+│   │   ├── models/     # ORM (User, Tenant — isolation multi-tenant appliquée)
 │   │   ├── schemas/    # Pydantic v2
 │   │   ├── services/   # logique métier + données de démo
 │   │   └── api/        # routers versionnés /api/v1
@@ -28,8 +28,8 @@ soc-platform/
 │   ├── src/
 │   │   ├── lib/        # client API (axios), contexte d'auth
 │   │   ├── components/ # Layout (shell), UI (cards, badges)
-│   │   ├── pages/      # 22 pages (une par module — voir liste ci-dessous)
-│   │   └── modules.ts  # catalogue des 22 modules (navigation)
+│   │   ├── pages/      # 26 pages (une par module — voir liste ci-dessous)
+│   │   └── modules.ts  # catalogue des 26 modules (navigation)
 │   └── Dockerfile
 └── docker-compose.yml  # postgres + redis + backend + frontend
 ```
@@ -43,7 +43,7 @@ soc-platform/
 | **Threat Intel** | Threat Intelligence · IOC Management · MITRE ATT&CK · UEBA |
 | **Governance** | Asset Management · Vulnerabilities · Compliance Center · Risk Management |
 | **IA** | AI Copilot · Knowledge Base (RAG) |
-| **Platform** | Reports Center · Audit Center (auditor/soc_manager) · Administration (admin) |
+| **Platform** | Reports Center · Audit Center (auditor/soc_manager) · Administration (admin) · Marketplace · Identity & SSO (admin) · Billing & Subscription (admin) · Observability |
 
 Chaque module a un routeur API dédié (`backend/app/api/routes/`), un générateur de
 données de démo déterministe (`backend/app/services/demo_data.py`) et une page React
@@ -86,6 +86,17 @@ npm run dev
 
 La vue **Executive** n'est accessible qu'aux rôles CISO / SOC Manager (démonstration du RBAC).
 
+### Multi-tenant : comptes d'autres organisations
+
+Pour vérifier l'isolation entre tenants (module **Administration**, `/api/v1/admin/overview`),
+deux tenants de démonstration supplémentaires sont amorcés — chacun avec ses propres comptes,
+invisibles depuis un autre tenant :
+
+| Tenant | Admin | Mot de passe |
+|---|---|---|
+| Globex Financial Group (`globex`) | admin@globex.demo | admin1234 |
+| Northwind Energy (`northwind`)     | admin@northwind.demo | admin1234 |
+
 ## Déploiement (Docker)
 
 ```bash
@@ -98,13 +109,16 @@ docker compose up --build
 
 - Mots de passe hachés **bcrypt**, jetons **JWT** signés, RBAC par rôle côté API.
 - `SECRET_KEY` et mots de passe admin **à changer** en production (voir `backend/.env.example`).
-- Modèle `User` porte déjà `tenant_id` → **multi-tenant** préparé sans migration destructive.
+- **Isolation multi-tenant appliquée** : modèle `Tenant` dédié, `tenant_id` porté par le JWT et
+  par `User`, toutes les requêtes d'administration filtrées par tenant (`api/routes/admin.py`,
+  `api/routes/billing.py`) — un admin ne voit et ne gère jamais les comptes d'une autre organisation.
 
 ## Roadmap
 
 - **Phase 1 (livrée)** — Architecture, Auth/RBAC, Dashboards, Incident Management
 - **Phase 2 (livrée)** — SIEM, SOAR (playbooks), Threat Intelligence, Detection Engineering
 - **Phase 3 (livrée)** — IA (Copilot, RAG/Knowledge Base), UEBA
-- **Phase 4 (partielle)** — Compliance ✅ livré · Multi-tenant (préparé via `tenant_id`,
-  isolation non appliquée) et Marketplace restent à faire
-- **Phase 5 (à faire)** — SaaS Enterprise (facturation, SSO SAML/OIDC, observabilité)
+- **Phase 4 (livrée)** — Compliance, isolation multi-tenant réelle, Marketplace
+- **Phase 5 (démo)** — Identity & SSO, Billing & Subscription, Observability : UI et API réelles,
+  données simulées (pas d'intégration IdP/paiement/monitoring tiers — nécessiterait des clés
+  d'API externes hors du périmètre de cette démo)

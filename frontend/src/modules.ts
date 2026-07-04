@@ -38,6 +38,10 @@ export const MODULES: ModuleDef[] = [
   { path: "/reports", label: "Reports Center", group: "Platform", icon: "🖨" },
   { path: "/audit", label: "Audit Center", group: "Platform", icon: "🧾", roles: ["auditor", "soc_manager"] },
   { path: "/admin", label: "Administration", group: "Platform", icon: "🛡", roles: ["admin"] },
+  { path: "/marketplace", label: "Marketplace", group: "Platform", icon: "🧩" },
+  { path: "/sso", label: "Identity & SSO", group: "Platform", icon: "🔐", roles: ["admin"] },
+  { path: "/billing", label: "Billing & Subscription", group: "Platform", icon: "💳", roles: ["admin"] },
+  { path: "/observability", label: "Observability", group: "Platform", icon: "📶" },
 ];
 
 export const GROUPS = ["Dashboards", "Detection & Response", "Threat Intel", "Governance", "AI", "Platform"];

@@ -12,6 +12,7 @@ from .api.routes import (
     assets,
     audit,
     auth,
+    billing,
     cases,
     compliance,
     copilot,
@@ -21,11 +22,14 @@ from .api.routes import (
     incidents,
     iocs,
     kb,
+    marketplace,
     mitre,
+    observability,
     reports,
     risk,
     siem,
     soar,
+    sso,
     threat_intel,
     ueba,
     vulnerabilities,
@@ -80,6 +84,10 @@ app.include_router(admin.router, prefix=settings.API_V1)
 app.include_router(copilot.router, prefix=settings.API_V1)
 app.include_router(kb.router, prefix=settings.API_V1)
 app.include_router(reports.router, prefix=settings.API_V1)
+app.include_router(marketplace.router, prefix=settings.API_V1)
+app.include_router(sso.router, prefix=settings.API_V1)
+app.include_router(billing.router, prefix=settings.API_V1)
+app.include_router(observability.router, prefix=settings.API_V1)
 
 
 @app.get("/health", tags=["system"])

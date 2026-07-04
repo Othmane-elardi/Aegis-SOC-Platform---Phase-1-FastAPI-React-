@@ -945,12 +945,12 @@ def admin_system_settings() -> dict:
     }
 
 
-def admin_license() -> dict:
+def admin_license(plan: str, seats_total: int, seats_used: int) -> dict:
+    """Plan/sièges viennent du Tenant réel en DB — seule la date de renouvellement est simulée."""
     rng = _rng("admin-lic")
-    seats_total = 50
     return {
-        "plan": "Enterprise",
-        "seats_used": rng.randint(18, seats_total),
+        "plan": plan,
+        "seats_used": seats_used,
         "seats_total": seats_total,
         "renews_at": (_now() + timedelta(days=rng.randint(30, 300))).isoformat(),
     }
@@ -1127,6 +1127,186 @@ def reports_summary(items: list[dict] | None = None) -> dict:
 def reports_overview() -> dict:
     items = reports()
     return {"summary": reports_summary(items), "items": items}
+
+
+# ── Marketplace ────────────────────────────────────────────────────────────
+MARKETPLACE_APPS = [
+    ("Splunk Forwarder", "Splunk Inc.", "Sources de logs", "Ingestion d'événements Splunk vers le SIEM Aegis."),
+    ("Palo Alto Firewall Connector", "Palo Alto Networks", "Sources de logs", "Collecte des journaux pare-feu Palo Alto (PAN-OS)."),
+    ("ServiceNow ITSM", "ServiceNow", "Ticketing", "Synchronisation bidirectionnelle des incidents avec ServiceNow."),
+    ("Jira Service Management", "Atlassian", "Ticketing", "Création automatique de tickets Jira depuis les incidents."),
+    ("VirusTotal Enrichment", "Google", "Threat Intel", "Enrichissement automatique des IOC via l'API VirusTotal."),
+    ("Recorded Future Feed", "Recorded Future", "Threat Intel", "Flux de renseignement sur la menace en temps réel."),
+    ("Slack Notifications", "Slack", "Communication", "Alertes et notifications d'incidents dans Slack."),
+    ("Microsoft Teams Connector", "Microsoft", "Communication", "Alertes et playbooks déclenchables depuis Teams."),
+    ("AWS CloudTrail Ingestion", "Amazon Web Services", "Cloud", "Ingestion des logs d'audit AWS CloudTrail."),
+    ("Azure Sentinel Bridge", "Microsoft", "Cloud", "Corrélation croisée avec Microsoft Sentinel."),
+    ("Okta Identity Sync", "Okta", "Identité", "Synchronisation des utilisateurs et évènements d'authentification Okta."),
+    ("CrowdStrike Falcon EDR", "CrowdStrike", "Sources de logs", "Ingestion des détections EDR CrowdStrike Falcon."),
+]
+
+
+def marketplace_apps() -> list[dict]:
+    rng = _rng("marketplace")
+    out = []
+    for i, (name, vendor, category, description) in enumerate(MARKETPLACE_APPS):
+        out.append({
+            "id": f"APP-{600 + i}",
+            "name": name,
+            "vendor": vendor,
+            "category": category,
+            "description": description,
+            "status": rng.choices(["installed", "available"], weights=[3, 7])[0],
+            "rating": round(rng.uniform(3.8, 5.0), 1),
+            "installs": rng.randint(120, 8000),
+        })
+    return out
+
+
+def marketplace_summary(items: list[dict] | None = None) -> dict:
+    items = items or marketplace_apps()
+    return {
+        "total": len(items),
+        "installed": sum(1 for a in items if a["status"] == "installed"),
+        "categories": len({a["category"] for a in items}),
+        "avg_rating": round(sum(a["rating"] for a in items) / len(items), 1),
+    }
+
+
+def marketplace_overview() -> dict:
+    items = marketplace_apps()
+    return {"summary": marketplace_summary(items), "apps": items}
+
+
+# ── Identity & SSO ─────────────────────────────────────────────────────────
+SSO_PROVIDER_DEFS = [
+    ("Okta", "SAML 2.0"), ("Azure AD / Entra ID", "OIDC"), ("Google Workspace", "OIDC"),
+]
+
+
+def sso_providers() -> list[dict]:
+    rng = _rng("sso")
+    out = []
+    for i, (name, protocol) in enumerate(SSO_PROVIDER_DEFS):
+        out.append({
+            "id": f"IDP-{i + 1}",
+            "name": name,
+            "protocol": protocol,
+            "status": rng.choices(["active", "disabled"], weights=[2, 1])[0],
+            "connected_users": rng.randint(5, 48),
+            "provisioning": rng.choice(["SCIM", "Manuel"]),
+            "last_sync": (_now() - timedelta(hours=rng.randint(0, 48))).isoformat(),
+            "cert_expires_at": (_now() + timedelta(days=rng.randint(10, 300))).isoformat() if protocol == "SAML 2.0" else None,
+        })
+    return out
+
+
+def sso_summary(items: list[dict] | None = None) -> dict:
+    items = items or sso_providers()
+    rng = _rng("sso-sum")
+    active = [p for p in items if p["status"] == "active"]
+    cert_soon = sum(1 for p in items if p.get("cert_expires_at") and datetime.fromisoformat(p["cert_expires_at"]) - _now() < timedelta(days=30))
+    return {
+        "providers_active": len(active),
+        "sso_logins_today": rng.randint(20, 140),
+        "provisioned_users": sum(p["connected_users"] for p in active),
+        "cert_expiring_soon": cert_soon,
+    }
+
+
+def sso_overview() -> dict:
+    items = sso_providers()
+    return {"summary": sso_summary(items), "providers": items}
+
+
+# ── Billing & Subscription ────────────────────────────────────────────────
+def billing_overview(plan: str, seats_total: int, seats_used: int) -> dict:
+    rng = _rng("billing")
+    price_per_seat = {"starter": 29, "professional": 79, "enterprise": 149}.get(plan, 79)
+    amount = seats_total * price_per_seat
+    return {
+        "plan": plan,
+        "seats_total": seats_total,
+        "seats_used": seats_used,
+        "price_per_seat_eur": price_per_seat,
+        "next_invoice_amount_eur": amount,
+        "next_invoice_date": (_now() + timedelta(days=rng.randint(5, 30))).isoformat(),
+        "payment_method": f"•••• •••• •••• {rng.randint(1000, 9999)}",
+        "usage": {
+            "api_calls_month": rng.randint(400_000, 2_500_000),
+            "storage_gb": round(rng.uniform(80, 900), 1),
+            "log_volume_gb_day": round(rng.uniform(20, 180), 1),
+        },
+    }
+
+
+def billing_invoices(limit: int = 8) -> list[dict]:
+    """`period` reste au format ISO — le libellé localisé (mois FR) est formaté côté frontend."""
+    rng = _rng("invoices")
+    out = []
+    for i in range(limit):
+        period = _now() - timedelta(days=30 * (i + 1))
+        out.append({
+            "id": f"INV-{period.strftime('%Y%m')}-{100 + i}",
+            "period": period.isoformat(),
+            "amount_eur": rng.randint(2000, 9000),
+            "status": "paid" if i > 0 else rng.choice(["paid", "pending"]),
+            "issued_at": period.isoformat(),
+        })
+    return out
+
+
+# ── Observability ──────────────────────────────────────────────────────────
+OBS_SERVICES = ["API Gateway", "Backend FastAPI", "Base de données", "File d'ingestion SIEM", "Cache Redis", "Moteur de corrélation"]
+
+
+def observability_services() -> list[dict]:
+    rng = _rng("obs-svc")
+    out = []
+    for name in OBS_SERVICES:
+        uptime = round(rng.uniform(99.80, 99.99), 2)
+        status = "operational" if uptime > 99.9 else "degraded"
+        out.append({
+            "name": name,
+            "status": status,
+            "uptime_pct_30d": uptime,
+            "latency_p95_ms": rng.randint(40, 320),
+        })
+    return out
+
+
+def observability_latency_trend(hours: int = 24) -> list[dict]:
+    rng = _rng("obs-latency")
+    out = []
+    for h in range(hours, -1, -1):
+        ts = _now() - timedelta(hours=h)
+        out.append({
+            "time": ts.strftime("%H:%M"),
+            "p50": rng.randint(30, 90),
+            "p95": rng.randint(100, 280),
+            "p99": rng.randint(300, 600),
+        })
+    return out
+
+
+def observability_summary(services: list[dict] | None = None) -> dict:
+    services = services or observability_services()
+    rng = _rng("obs-sum")
+    return {
+        "overall_uptime_pct": round(sum(s["uptime_pct_30d"] for s in services) / len(services), 2),
+        "avg_latency_ms": round(sum(s["latency_p95_ms"] for s in services) / len(services), 0),
+        "error_rate_pct": round(rng.uniform(0.02, 0.4), 2),
+        "platform_incidents_30d": rng.randint(0, 4),
+    }
+
+
+def observability_overview() -> dict:
+    services = observability_services()
+    return {
+        "summary": observability_summary(services),
+        "services": services,
+        "latency_trend": observability_latency_trend(),
+    }
 
 
 def compliance_overview() -> dict:

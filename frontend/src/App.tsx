@@ -24,6 +24,10 @@ import Admin from "./pages/Admin";
 import Copilot from "./pages/Copilot";
 import Kb from "./pages/Kb";
 import Reports from "./pages/Reports";
+import Marketplace from "./pages/Marketplace";
+import Sso from "./pages/Sso";
+import Billing from "./pages/Billing";
+import Observability from "./pages/Observability";
 import ModulePlaceholder from "./pages/ModulePlaceholder";
 import { MODULES } from "./modules";
 
@@ -67,6 +71,10 @@ export default function App() {
         <Route path="/copilot" element={<Copilot />} />
         <Route path="/kb" element={<Kb />} />
         <Route path="/reports" element={<Reports />} />
+        <Route path="/marketplace" element={<Marketplace />} />
+        <Route path="/sso" element={<Sso />} />
+        <Route path="/billing" element={<Billing />} />
+        <Route path="/observability" element={<Observability />} />
         {/* Modules de la roadmap : squelettes honnêtes (badge « Roadmap ») pour
             montrer l'étendue de la plateforme sans simuler une profondeur absente. */}
         {MODULES.filter((m) => m.roadmap).map((m) => (

@@ -12,6 +12,7 @@ interface PlatformUser {
   created_at: string;
 }
 interface Overview {
+  tenant: { slug: string; name: string; plan: string };
   users: PlatformUser[];
   system: {
     mfa_enforced: boolean;
@@ -31,11 +32,14 @@ export default function Admin() {
   });
 
   if (isLoading || !data) return <div className="text-muted">Chargement de l'administration…</div>;
-  const { system, license } = data;
+  const { system, license, tenant } = data;
 
   return (
     <div>
-      <PageHeader title="Administration" subtitle="Comptes de la plateforme, sécurité et licence — accès restreint aux administrateurs" />
+      <PageHeader
+        title="Administration"
+        subtitle={`${tenant.name} (${tenant.slug}) — comptes de la plateforme, sécurité et licence, accès restreint aux administrateurs`}
+      />
 
       <div className="mb-4 grid grid-cols-2 gap-4 md:grid-cols-4">
         <KpiCard icon="👥" accent="brand" label="Comptes" value={data.users.length} />
@@ -46,7 +50,7 @@ export default function Admin() {
 
       <div className="mb-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="lg:col-span-2">
-          <Card title="Comptes utilisateurs" badge={`${data.users.length}`}>
+          <Card title="Comptes utilisateurs" badge={`tenant : ${tenant.slug}`}>
             <table className="w-full text-[12.5px]">
               <thead>
                 <tr className="text-left text-[10.5px] uppercase tracking-wide text-muted">
