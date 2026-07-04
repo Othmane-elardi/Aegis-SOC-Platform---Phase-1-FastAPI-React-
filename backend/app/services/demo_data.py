@@ -670,6 +670,198 @@ def cases_overview() -> dict:
     return {"summary": cases_summary(items), "items": items}
 
 
+# ── SIEM ───────────────────────────────────────────────────────────────
+SIEM_SOURCES = ["Windows Event Log", "Firewall (Edge)", "Linux Auditd", "Cloud (AWS CloudTrail)", "IDS/IPS", "Proxy Web", "EDR"]
+SIEM_EVENT_TYPES = [
+    ("Authentication", "Échec d'authentification répété"), ("Network", "Trafic sortant vers IP suspecte"),
+    ("Process", "Création de processus inhabituelle"), ("File", "Modification de fichier système critique"),
+    ("Policy", "Violation de politique de pare-feu"), ("DNS", "Résolution DNS vers domaine à risque"),
+]
+
+
+def siem_events(limit: int = 60) -> list[dict]:
+    rng = _rng("siem-events")
+    out = []
+    for i in range(limit):
+        category, msg = rng.choice(SIEM_EVENT_TYPES)
+        out.append({
+            "id": f"EVT-{900000 + i}",
+            "timestamp": (_now() - timedelta(seconds=rng.randint(0, 3600 * 6))).isoformat(),
+            "source": rng.choice(SIEM_SOURCES),
+            "category": category,
+            "message": msg,
+            "host": rng.choice(ASSETS),
+            "severity": rng.choices(SEVERITIES, weights=[1, 3, 6, 8])[0],
+        })
+    out.sort(key=lambda x: x["timestamp"], reverse=True)
+    return out
+
+
+def siem_summary() -> dict:
+    rng = _rng("siem-sum")
+    return {
+        "events_per_sec": rng.randint(850, 2400),
+        "events_today": rng.randint(48_000_000, 72_000_000),
+        "sources_connected": len(SIEM_SOURCES),
+        "storage_used_tb": round(rng.uniform(4.2, 9.8), 1),
+        "retention_days": 180,
+    }
+
+
+def siem_sources_breakdown() -> list[dict]:
+    rng = _rng("siem-src")
+    return [{"source": s, "events": rng.randint(500, 9000)} for s in SIEM_SOURCES]
+
+
+def siem_overview() -> dict:
+    return {
+        "summary": siem_summary(),
+        "sources": siem_sources_breakdown(),
+        "events": siem_events(),
+    }
+
+
+# ── SOAR Playbooks ────────────────────────────────────────────────────────
+PLAYBOOK_DEFS = [
+    ("Confinement — poste compromis", "Malware détecté (EDR)", "Confinement"),
+    ("Blocage IOC automatique", "Nouvel IOC malveillant reçu", "Threat Intel"),
+    ("Réinitialisation identifiants", "Brute-force réussi détecté", "Identity"),
+    ("Enrichissement d'alerte", "Nouvelle alerte SIEM créée", "Enrichissement"),
+    ("Isolation réseau VLAN", "Mouvement latéral suspecté", "Confinement"),
+    ("Notification équipe conformité", "Violation de politique DLP", "Conformité"),
+    ("Blocage expéditeur phishing", "Campagne de phishing signalée", "Email Security"),
+    ("Escalade incident critique", "Incident sévérité critique créé", "Escalade"),
+]
+
+
+def soar_playbooks() -> list[dict]:
+    rng = _rng("soar")
+    out = []
+    for i, (name, trigger, category) in enumerate(PLAYBOOK_DEFS):
+        executions = rng.randint(20, 400)
+        out.append({
+            "id": f"PB-{100 + i}",
+            "name": name,
+            "trigger": trigger,
+            "category": category,
+            "status": rng.choices(["active", "draft", "disabled"], weights=[7, 2, 1])[0],
+            "executions_30d": executions,
+            "success_rate": round(rng.uniform(82, 99.5), 1),
+            "avg_duration_sec": rng.randint(8, 240),
+            "last_run": (_now() - timedelta(hours=rng.randint(0, 48))).isoformat(),
+        })
+    return out
+
+
+def soar_summary(items: list[dict] | None = None) -> dict:
+    items = items or soar_playbooks()
+    rng = _rng("soar-sum")
+    return {
+        "total": len(items),
+        "active": sum(1 for p in items if p["status"] == "active"),
+        "executions_today": rng.randint(60, 260),
+        "time_saved_hours": rng.randint(120, 480),
+    }
+
+
+def soar_overview() -> dict:
+    items = soar_playbooks()
+    return {"summary": soar_summary(items), "playbooks": items}
+
+
+# ── Detection Engineering ─────────────────────────────────────────────────
+DETECTION_RULE_NAMES = [
+    "Connexion admin domaine hors horaires", "Exécution PowerShell encodée",
+    "Kerberoasting — requêtes TGS anormales", "Création de tâche planifiée suspecte",
+    "Transfert de fichier volumineux vers externe", "Désactivation des journaux d'audit",
+    "Nouveau compte ajouté aux administrateurs", "Connexion RDP depuis IP externe",
+    "Exécution depuis répertoire temporaire", "Modification de clé de registre Run",
+    "Balayage de ports interne", "Requête DNS vers domaine récemment enregistré",
+]
+
+
+def detection_rules() -> list[dict]:
+    rng = _rng("detection")
+    out = []
+    for i, name in enumerate(DETECTION_RULE_NAMES):
+        tid, tactic = rng.choice(MITRE_TACTICS)
+        out.append({
+            "id": f"RULE-{200 + i}",
+            "name": name,
+            "mitre_tactic": tactic,
+            "mitre_id": tid,
+            "severity": rng.choice(SEVERITIES),
+            "status": rng.choices(["enabled", "tuning", "disabled"], weights=[7, 2, 1])[0],
+            "false_positive_rate": round(rng.uniform(0.5, 18.0), 1),
+            "hits_7d": rng.randint(0, 140),
+            "author": rng.choice(ANALYSTS)["name"],
+            "updated_at": (_now() - timedelta(days=rng.randint(1, 120))).isoformat(),
+        })
+    return out
+
+
+def detection_summary(items: list[dict] | None = None) -> dict:
+    items = items or detection_rules()
+    return {
+        "total": len(items),
+        "enabled": sum(1 for r in items if r["status"] == "enabled"),
+        "avg_fp_rate": round(sum(r["false_positive_rate"] for r in items) / len(items), 1),
+        "hits_7d": sum(r["hits_7d"] for r in items),
+    }
+
+
+def detection_overview() -> dict:
+    items = detection_rules()
+    return {"summary": detection_summary(items), "rules": items}
+
+
+# ── Threat Hunting ─────────────────────────────────────────────────────────
+HUNT_HYPOTHESES = [
+    "Persistance via tâches planifiées non signées sur serveurs critiques",
+    "Exfiltration lente via DNS tunneling sur le segment finance",
+    "Comptes de service utilisés en dehors de leur périmètre habituel",
+    "Mouvement latéral via WMI non détecté par les règles actuelles",
+    "Utilisation d'outils LOLBins pour contourner l'EDR",
+    "Communications C2 déguisées en trafic HTTPS légitime",
+]
+HUNT_STATUSES = ["planned", "in_progress", "completed"]
+
+
+def threat_hunts() -> list[dict]:
+    rng = _rng("hunts")
+    out = []
+    for i, hyp in enumerate(HUNT_HYPOTHESES):
+        started = _now() - timedelta(days=rng.randint(2, 60))
+        status = rng.choice(HUNT_STATUSES)
+        tid, tactic = rng.choice(MITRE_TACTICS)
+        out.append({
+            "id": f"HUNT-{50 + i}",
+            "hypothesis": hyp,
+            "status": status,
+            "analyst": rng.choice(ANALYSTS)["name"],
+            "mitre_tactic": tactic,
+            "findings": rng.randint(0, 6) if status != "planned" else 0,
+            "started_at": started.isoformat(),
+        })
+    return out
+
+
+def hunting_summary(items: list[dict] | None = None) -> dict:
+    items = items or threat_hunts()
+    rng = _rng("hunt-sum")
+    return {
+        "total": len(items),
+        "active": sum(1 for h in items if h["status"] == "in_progress"),
+        "findings_total": sum(h["findings"] for h in items),
+        "coverage_pct": rng.randint(58, 82),
+    }
+
+
+def hunting_overview() -> dict:
+    items = threat_hunts()
+    return {"summary": hunting_summary(items), "hunts": items}
+
+
 def compliance_overview() -> dict:
     frameworks = compliance_frameworks()
     return {

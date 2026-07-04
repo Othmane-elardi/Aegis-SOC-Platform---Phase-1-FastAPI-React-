@@ -14,6 +14,10 @@ import Iocs from "./pages/Iocs";
 import Ueba from "./pages/Ueba";
 import Risk from "./pages/Risk";
 import Cases from "./pages/Cases";
+import Siem from "./pages/Siem";
+import Soar from "./pages/Soar";
+import Detection from "./pages/Detection";
+import Hunting from "./pages/Hunting";
 import ModulePlaceholder from "./pages/ModulePlaceholder";
 import { MODULES } from "./modules";
 
@@ -47,6 +51,10 @@ export default function App() {
         <Route path="/ueba" element={<Ueba />} />
         <Route path="/risk" element={<Risk />} />
         <Route path="/cases" element={<Cases />} />
+        <Route path="/siem" element={<Siem />} />
+        <Route path="/soar" element={<Soar />} />
+        <Route path="/detection" element={<Detection />} />
+        <Route path="/hunting" element={<Hunting />} />
         {/* Modules de la roadmap : squelettes honnêtes (badge « Roadmap ») pour
             montrer l'étendue de la plateforme sans simuler une profondeur absente. */}
         {MODULES.filter((m) => m.roadmap).map((m) => (

@@ -17,10 +17,10 @@ export const MODULES: ModuleDef[] = [
   // Detection & Response
   { path: "/incidents", label: "Incident Management", group: "Detection & Response", icon: "⚑" },
   { path: "/cases", label: "Case Management", group: "Detection & Response", icon: "🗂" },
-  { path: "/siem", label: "SIEM", group: "Detection & Response", icon: "🛢", roadmap: true },
-  { path: "/soar", label: "SOAR Playbooks", group: "Detection & Response", icon: "⚙", roadmap: true },
-  { path: "/hunting", label: "Threat Hunting", group: "Detection & Response", icon: "🎯", roadmap: true },
-  { path: "/detection", label: "Detection Engineering", group: "Detection & Response", icon: "⟠", roadmap: true },
+  { path: "/siem", label: "SIEM", group: "Detection & Response", icon: "🛢" },
+  { path: "/soar", label: "SOAR Playbooks", group: "Detection & Response", icon: "⚙" },
+  { path: "/hunting", label: "Threat Hunting", group: "Detection & Response", icon: "🎯" },
+  { path: "/detection", label: "Detection Engineering", group: "Detection & Response", icon: "⟠" },
   // Threat Intelligence
   { path: "/threat-intel", label: "Threat Intelligence", group: "Threat Intel", icon: "🛰" },
   { path: "/iocs", label: "IOC Management", group: "Threat Intel", icon: "⬡" },

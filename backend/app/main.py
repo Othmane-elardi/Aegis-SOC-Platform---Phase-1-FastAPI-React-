@@ -12,10 +12,14 @@ from .api.routes import (
     cases,
     compliance,
     dashboards,
+    detection,
+    hunting,
     incidents,
     iocs,
     mitre,
     risk,
+    siem,
+    soar,
     threat_intel,
     ueba,
     vulnerabilities,
@@ -60,6 +64,10 @@ app.include_router(iocs.router, prefix=settings.API_V1)
 app.include_router(ueba.router, prefix=settings.API_V1)
 app.include_router(risk.router, prefix=settings.API_V1)
 app.include_router(cases.router, prefix=settings.API_V1)
+app.include_router(siem.router, prefix=settings.API_V1)
+app.include_router(soar.router, prefix=settings.API_V1)
+app.include_router(detection.router, prefix=settings.API_V1)
+app.include_router(hunting.router, prefix=settings.API_V1)
 
 
 @app.get("/health", tags=["system"])

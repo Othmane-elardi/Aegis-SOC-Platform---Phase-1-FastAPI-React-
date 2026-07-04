@@ -93,6 +93,18 @@ const STATUS: Record<string, string> = {
   in_review: "bg-med/15 text-med border-med/40",
   closed: "bg-low/15 text-low border-low/40",
 };
+// États opérationnels (santé d'un composant/automatisation) — sémantique inverse de STATUS
+// pour certains mots partagés (ex. "active" = sain ici, vs. menace en cours dans STATUS).
+const OP: Record<string, string> = {
+  active: "bg-low/15 text-low border-low/40",
+  enabled: "bg-low/15 text-low border-low/40",
+  draft: "bg-info/15 text-info border-info/40",
+  tuning: "bg-med/15 text-med border-med/40",
+  disabled: "bg-muted/15 text-muted border-border",
+  planned: "bg-info/15 text-info border-info/40",
+  in_progress: "bg-med/15 text-med border-med/40",
+  completed: "bg-low/15 text-low border-low/40",
+};
 const VERDICT: Record<string, string> = {
   malicious: "bg-crit/15 text-crit border-crit/40",
   suspicious: "bg-med/15 text-med border-med/40",
@@ -109,7 +121,7 @@ const COMPLIANCE: Record<string, string> = {
   non_compliant: "bg-crit/15 text-crit border-crit/40",
 };
 
-const BADGE_MAPS = { sev: SEV, status: STATUS, verdict: VERDICT, coverage: COVERAGE, compliance: COMPLIANCE };
+const BADGE_MAPS = { sev: SEV, status: STATUS, verdict: VERDICT, coverage: COVERAGE, compliance: COMPLIANCE, op: OP };
 
 export function Badge({ kind, value }: { kind: keyof typeof BADGE_MAPS; value: string }) {
   const map = BADGE_MAPS[kind];
