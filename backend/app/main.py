@@ -14,12 +14,15 @@ from .api.routes import (
     auth,
     cases,
     compliance,
+    copilot,
     dashboards,
     detection,
     hunting,
     incidents,
     iocs,
+    kb,
     mitre,
+    reports,
     risk,
     siem,
     soar,
@@ -74,6 +77,9 @@ app.include_router(hunting.router, prefix=settings.API_V1)
 app.include_router(analyst.router, prefix=settings.API_V1)
 app.include_router(audit.router, prefix=settings.API_V1)
 app.include_router(admin.router, prefix=settings.API_V1)
+app.include_router(copilot.router, prefix=settings.API_V1)
+app.include_router(kb.router, prefix=settings.API_V1)
+app.include_router(reports.router, prefix=settings.API_V1)
 
 
 @app.get("/health", tags=["system"])

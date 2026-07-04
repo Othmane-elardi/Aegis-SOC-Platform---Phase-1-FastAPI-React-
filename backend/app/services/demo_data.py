@@ -956,6 +956,179 @@ def admin_license() -> dict:
     }
 
 
+# ── AI Copilot ─────────────────────────────────────────────────────────────
+COPILOT_INSIGHT_TEMPLATES = [
+    ("triage", "Corrélation détectée entre {inc} et une campagne {actor} suivie en threat intel."),
+    ("remediation", "Recommandation : isoler {asset} — {n} indicateurs malveillants observés sur cet hôte en 24h."),
+    ("triage", "{inc} présente un pattern similaire à 3 incidents résolus le mois dernier — même TTP MITRE."),
+    ("threat-intel", "Nouvel IOC critique corrélé à {n} événements SIEM des dernières 6 heures."),
+    ("remediation", "Playbook « Confinement — poste compromis » suggéré pour {inc} (confiance élevée)."),
+    ("triage", "Priorité recalculée pour {inc} : élévation de risque due à l'actif {asset} (criticité haute)."),
+]
+
+
+def ai_insights(limit: int = 12) -> list[dict]:
+    rng = _rng("copilot-insights")
+    incs = incidents(20)
+    out = []
+    for i in range(limit):
+        category, template = rng.choice(COPILOT_INSIGHT_TEMPLATES)
+        inc = rng.choice(incs)
+        actor = rng.choice(THREAT_ACTORS)["name"]
+        text = template.format(inc=inc["id"], asset=inc["asset"], actor=actor, n=rng.randint(3, 40))
+        out.append({
+            "id": f"AI-{5000 + i}",
+            "category": category,
+            "text": text,
+            "confidence": rng.randint(68, 98),
+            "related_incident": inc["id"],
+            "generated_at": (_now() - timedelta(minutes=rng.randint(0, 600))).isoformat(),
+        })
+    out.sort(key=lambda x: x["generated_at"], reverse=True)
+    return out
+
+
+def copilot_summary() -> dict:
+    rng = _rng("copilot-sum")
+    return {
+        "insights_today": rng.randint(40, 160),
+        "avg_confidence": rng.randint(78, 94),
+        "incidents_auto_triaged": rng.randint(60, 220),
+        "analyst_hours_saved": rng.randint(15, 60),
+    }
+
+
+def copilot_overview() -> dict:
+    return {"summary": copilot_summary(), "insights": ai_insights()}
+
+
+def copilot_ask(question: str) -> dict:
+    """Réponse déterministe basée sur mots-clés — démonstration sans appel LLM réel."""
+    q = question.lower()
+    if any(w in q for w in ["incident", "incidents"]):
+        items = incidents(40)
+        crit = sum(1 for i in items if i["severity"] == "critical")
+        answer = (
+            f"Il y a actuellement {sum(1 for i in items if i['status'] != 'resolved')} incidents ouverts, "
+            f"dont {crit} de sévérité critique. Le dernier incident critique concerne l'actif "
+            f"{next((i['asset'] for i in items if i['severity'] == 'critical'), 'N/A')}."
+        )
+    elif any(w in q for w in ["vuln", "cve"]):
+        s = vulnerabilities_summary()
+        answer = (
+            f"{s['open']} vulnérabilités sont ouvertes dont {s['critical_open']} critiques. "
+            f"{s['exploit_available']} disposent d'un exploit public connu. Conformité de patch actuelle : {s['patch_compliance_pct']}%."
+        )
+    elif any(w in q for w in ["risque", "risk"]):
+        s = risk_summary()
+        answer = f"{s['total']} risques sont suivis dans le registre, dont {s['critical_high']} de niveau critique ou élevé (score moyen {s['avg_score']})."
+    elif any(w in q for w in ["conform", "compliance", "audit"]):
+        s = compliance_overview()["summary"]
+        answer = f"Le score de conformité global est de {s['overall_score']}% sur {s['frameworks_tracked']} référentiels suivis, avec {s['controls_failed']} contrôles en échec."
+    else:
+        answer = (
+            "Je peux résumer les incidents, vulnérabilités, risques ou la conformité. "
+            "Essayez par exemple : « Quels sont les incidents critiques ouverts ? »"
+        )
+    return {"question": question, "answer": answer, "answered_at": _now().isoformat()}
+
+
+# ── Knowledge Base (RAG) ───────────────────────────────────────────────────
+KB_ARTICLES = [
+    ("Playbook : réponse à un ransomware", "playbook", "Detection & Response"),
+    ("Procédure de confinement d'un poste compromis", "procedure", "Detection & Response"),
+    ("Profil de menace : APT29 (Cozy Bear)", "threat-profile", "Threat Intel"),
+    ("Politique de classification des incidents", "policy", "Gouvernance"),
+    ("Playbook : phishing ciblé (spear phishing)", "playbook", "Detection & Response"),
+    ("Procédure d'escalade vers le CISO", "procedure", "Gouvernance"),
+    ("Profil de menace : Lazarus Group", "threat-profile", "Threat Intel"),
+    ("Politique de rétention des logs SIEM", "policy", "Plateforme"),
+    ("Playbook : exfiltration de données suspectée", "playbook", "Detection & Response"),
+    ("Procédure de gestion des accès à privilèges", "procedure", "Gouvernance"),
+    ("Guide d'investigation MITRE ATT&CK", "procedure", "Threat Intel"),
+    ("Politique de réponse aux demandes RGPD", "policy", "Conformité"),
+]
+
+
+def kb_articles() -> list[dict]:
+    rng = _rng("kb")
+    out = []
+    for i, (title, category, module) in enumerate(KB_ARTICLES):
+        out.append({
+            "id": f"KB-{300 + i}",
+            "title": title,
+            "category": category,
+            "module": module,
+            "author": rng.choice(ANALYSTS)["name"],
+            "views": rng.randint(20, 900),
+            "updated_at": (_now() - timedelta(days=rng.randint(1, 200))).isoformat(),
+        })
+    out.sort(key=lambda x: x["views"], reverse=True)
+    return out
+
+
+def kb_summary(items: list[dict] | None = None) -> dict:
+    items = items or kb_articles()
+    rng = _rng("kb-sum")
+    return {
+        "total": len(items),
+        "categories": len({a["category"] for a in items}),
+        "updated_7d": sum(1 for a in items if datetime.fromisoformat(a["updated_at"]) > _now() - timedelta(days=7)),
+        "searches_today": rng.randint(30, 140),
+    }
+
+
+def kb_overview() -> dict:
+    items = kb_articles()
+    return {"summary": kb_summary(items), "articles": items}
+
+
+# ── Reports Center ─────────────────────────────────────────────────────────
+REPORT_DEFS = [
+    ("Synthèse exécutive mensuelle", "executive", "PDF", "monthly"),
+    ("Rapport de conformité ISO 27001", "compliance", "PDF", "quarterly"),
+    ("Résumé hebdomadaire des incidents", "incident-summary", "PDF", "weekly"),
+    ("Export des vulnérabilités critiques", "custom", "CSV", "weekly"),
+    ("Rapport SLA SOC", "executive", "PDF", "monthly"),
+    ("Rapport d'audit des accès", "compliance", "CSV", "monthly"),
+    ("Tableau de bord threat intelligence", "custom", "PDF", "weekly"),
+    ("Rapport de posture de risque", "executive", "PDF", "quarterly"),
+]
+
+
+def reports() -> list[dict]:
+    rng = _rng("reports")
+    out = []
+    for i, (name, rtype, fmt, schedule) in enumerate(REPORT_DEFS):
+        out.append({
+            "id": f"RPT-{700 + i}",
+            "name": name,
+            "type": rtype,
+            "format": fmt,
+            "schedule": schedule,
+            "last_generated": (_now() - timedelta(days=rng.randint(0, 30))).isoformat(),
+            "recipients": rng.randint(2, 12),
+            "status": rng.choices(["ready", "generating"], weights=[9, 1])[0],
+        })
+    return out
+
+
+def reports_summary(items: list[dict] | None = None) -> dict:
+    items = items or reports()
+    rng = _rng("reports-sum")
+    return {
+        "total": len(items),
+        "scheduled": sum(1 for r in items if r["schedule"] != "on-demand"),
+        "generated_this_month": rng.randint(10, 40),
+        "recipients_total": sum(r["recipients"] for r in items),
+    }
+
+
+def reports_overview() -> dict:
+    items = reports()
+    return {"summary": reports_summary(items), "items": items}
+
+
 def compliance_overview() -> dict:
     frameworks = compliance_frameworks()
     return {

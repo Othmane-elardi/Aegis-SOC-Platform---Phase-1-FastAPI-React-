@@ -21,6 +21,9 @@ import Hunting from "./pages/Hunting";
 import AnalystWorkspace from "./pages/AnalystWorkspace";
 import Audit from "./pages/Audit";
 import Admin from "./pages/Admin";
+import Copilot from "./pages/Copilot";
+import Kb from "./pages/Kb";
+import Reports from "./pages/Reports";
 import ModulePlaceholder from "./pages/ModulePlaceholder";
 import { MODULES } from "./modules";
 
@@ -61,6 +64,9 @@ export default function App() {
         <Route path="/analyst" element={<AnalystWorkspace />} />
         <Route path="/audit" element={<Audit />} />
         <Route path="/admin" element={<Admin />} />
+        <Route path="/copilot" element={<Copilot />} />
+        <Route path="/kb" element={<Kb />} />
+        <Route path="/reports" element={<Reports />} />
         {/* Modules de la roadmap : squelettes honnêtes (badge « Roadmap ») pour
             montrer l'étendue de la plateforme sans simuler une profondeur absente. */}
         {MODULES.filter((m) => m.roadmap).map((m) => (

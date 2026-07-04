@@ -32,10 +32,10 @@ export const MODULES: ModuleDef[] = [
   { path: "/compliance", label: "Compliance Center", group: "Governance", icon: "✔" },
   { path: "/risk", label: "Risk Management", group: "Governance", icon: "📈" },
   // AI
-  { path: "/copilot", label: "AI Copilot", group: "AI", icon: "✨", roadmap: true },
-  { path: "/kb", label: "Knowledge Base (RAG)", group: "AI", icon: "📚", roadmap: true },
+  { path: "/copilot", label: "AI Copilot", group: "AI", icon: "✨" },
+  { path: "/kb", label: "Knowledge Base (RAG)", group: "AI", icon: "📚" },
   // Platform
-  { path: "/reports", label: "Reports Center", group: "Platform", icon: "🖨", roadmap: true },
+  { path: "/reports", label: "Reports Center", group: "Platform", icon: "🖨" },
   { path: "/audit", label: "Audit Center", group: "Platform", icon: "🧾", roles: ["auditor", "soc_manager"] },
   { path: "/admin", label: "Administration", group: "Platform", icon: "🛡", roles: ["admin"] },
 ];
